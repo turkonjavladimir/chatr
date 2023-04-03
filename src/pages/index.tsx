@@ -8,7 +8,7 @@ const Home: NextPage = () => {
         <title>Chatr</title>
         <meta
           name="description"
-          content="Chattr: A haven for tweets without Elongated Muskrat's influence!"
+          content="Chatr: A haven for tweets without Elongated Muskrat's influence!"
         />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
