@@ -1,21 +1,28 @@
-import { type NextPage } from "next";
-import Head from "next/head";
+import type { NextPage } from "next";
+import { signIn, signOut, useSession } from "next-auth/react";
+
+import { PostForm } from "~/components";
+import PageLayout from "~/components/layout";
 
 const Home: NextPage = () => {
+  const { data: sessionData } = useSession();
+
   return (
     <>
-      <Head>
-        <title>Chatr</title>
-        <meta
-          name="description"
-          content="Chatr: A haven for tweets without Elongated Muskrat's influence!"
-        />
-      </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h2>Hello world</h2>
+      <PageLayout>
+        <div className="my-4 flex justify-center">
+          <button
+            className="rounded-full bg-neutral-800 px-5 py-2 font-semibold text-white no-underline transition"
+            onClick={sessionData ? () => void signOut() : () => void signIn()}
+          >
+            {sessionData ? "Sign out" : "Sign in"}
+          </button>
         </div>
-      </main>
+
+        <div className="m-4">
+          <PostForm />
+        </div>
+      </PageLayout>
     </>
   );
 };
