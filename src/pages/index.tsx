@@ -19,9 +19,11 @@ const Home: NextPage = () => {
           </button>
         </div>
 
-        <div className="m-4">
-          <PostForm />
-        </div>
+        {sessionData && (
+          <div className="m-4">
+            <PostForm />
+          </div>
+        )}
       </PageLayout>
     </>
   );
