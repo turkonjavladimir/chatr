@@ -15,7 +15,7 @@ const CharacterCount = ({
 
   useEffect(() => {
     if (exceeded) {
-      toast("Character limit reached");
+      toast("Character limit reached", { position: "top-center" });
     }
   }, [exceeded]);
 
