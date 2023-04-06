@@ -1,8 +1,11 @@
 import { z } from "zod";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+/* import type { User } from "@prisma/client"; */
 import { useSession } from "next-auth/react";
 import type { SubmitHandler } from "react-hook-form";
+/* 
+import { v4 as uuidv4 } from "uuid"; */
 
 import { api } from "~/utils/api";
 import useZodForm from "~/utils/hooks/useZodForm";
@@ -46,7 +49,7 @@ const LoadingSpinner = () => {
 };
 
 const postSchema = z.object({
-  content: z.string().min(1).max(280),
+  content: z.string().min(1).max(280).trim(),
 });
 type PostSchemaValidation = z.infer<typeof postSchema>;
 
@@ -67,20 +70,57 @@ const PostForm = () => {
   });
   const contentValue = watch("content").length;
 
+  const ctx = api.useContext();
   const { mutate, isLoading } = api.posts.create.useMutation({
-    onSuccess: () => {
-      reset();
-      toast.success("Posted!");
-    },
-    onError: (error) => {
+    /* onMutate: async (newPost) => {
+      // cancel all outgoing refetches (so they don't overwrite our optimistic update)
+      await ctx.posts.getAll.cancel();
+
+      // Snapshot the previous value
+      const previousPosts = ctx.posts.getAll.getData();
+
+      // Optimistically update to the new value
+      ctx.posts.getAll.setData(undefined, (prev) => {
+        const optimisticPost = {
+          id: uuidv4(),
+          content: newPost.content,
+          authorId: sessionData?.user?.id ?? "",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          author: {
+            id: sessionData?.user?.id ?? "",
+            name: sessionData?.user?.name ?? "",
+            image: sessionData?.user?.image ?? "",
+            email: null,
+            emailVerified: null,
+          } as User,
+        };
+
+        console.log("prev", prev, optimisticPost);
+        console.log("optimistic", optimisticPost);
+        if (!prev) {
+          return [optimisticPost];
+        }
+        prev.pop();
+        return [optimisticPost, ...prev];
+      });
+
+      return { previousPosts };
+    }, */
+    onError: (error /* _, context */) => {
       console.log("error", error);
       toast.error("Failed to post");
+      reset();
+    },
+    onSuccess: async () => {
+      await ctx.posts.getAll.invalidate();
+      toast.success("Posted!");
+      reset();
     },
   });
 
   const onSubmit: SubmitHandler<PostSchemaValidation> = (data) => {
     mutate({ content: data?.content });
-    reset();
   };
 
   if (!sessionData) return null;
@@ -100,14 +140,19 @@ const PostForm = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="flex grow flex-col gap-4"
           >
-            <div className="flex flex-col items-end rounded-xl bg-white shadow-sm">
+            <div
+              className={`flex flex-col items-end rounded-xl bg-white shadow-sm ${
+                isLoading ? "opacity-70" : ""
+              }`}
+            >
               <textarea
+                disabled={isLoading}
                 {...register("content", { required: "Required" })}
                 name="content"
                 aria-invalid={errors.content ? "true" : "false"}
                 placeholder={`What's happening?`}
-                maxLength={1280}
-                className="h-24 w-full resize-none rounded-t-xl px-3 py-2 text-base text-gray-700 placeholder-gray-500 outline-none transition-all"
+                maxLength={280}
+                className="h-24 w-full resize-none rounded-t-xl px-3 py-2 text-base text-gray-700 placeholder-gray-500 outline-none transition-all disabled:bg-white"
               />
 
               <div className="mb-2 flex items-center gap-2">
@@ -117,7 +162,7 @@ const PostForm = () => {
                   max={280}
                 />
                 <button
-                  disabled={!isValid}
+                  disabled={!isValid || isLoading}
                   type="submit"
                   className="mx-2 inline-flex w-20 items-center justify-center gap-2 rounded-lg border border-gray-300 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:pointer-events-auto disabled:opacity-50 disabled:hover:bg-transparent"
                 >
