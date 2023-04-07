@@ -1,11 +1,11 @@
 import { z } from "zod";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
-/* import type { User } from "@prisma/client"; */
+import type { Post, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { SubmitHandler } from "react-hook-form";
-/* 
-import { v4 as uuidv4 } from "uuid"; */
+
+import { v4 as uuidv4 } from "uuid";
 
 import { api } from "~/utils/api";
 import useZodForm from "~/utils/hooks/useZodForm";
@@ -31,7 +31,7 @@ const MediaButtons = () => {
   );
 };
 
-const LoadingSpinner = () => {
+export const LoadingSpinner = () => {
   return (
     <div aria-label="Loading..." role="status">
       <svg className="h-3 w-3 animate-spin" viewBox="3 3 18 18">
@@ -72,7 +72,7 @@ const PostForm = () => {
 
   const ctx = api.useContext();
   const { mutate, isLoading } = api.posts.create.useMutation({
-    /* onMutate: async (newPost) => {
+    onMutate: async (newPost) => {
       // cancel all outgoing refetches (so they don't overwrite our optimistic update)
       await ctx.posts.getAll.cancel();
 
@@ -93,26 +93,29 @@ const PostForm = () => {
             image: sessionData?.user?.image ?? "",
             email: null,
             emailVerified: null,
-          } as User,
-        };
+          },
+          isLoading: true,
+        } as Post & { author: User; isLoading: boolean };
 
-        console.log("prev", prev, optimisticPost);
-        console.log("optimistic", optimisticPost);
         if (!prev) {
           return [optimisticPost];
         }
-        prev.pop();
+
         return [optimisticPost, ...prev];
       });
 
       return { previousPosts };
-    }, */
-    onError: (error /* _, context */) => {
-      console.log("error", error);
+    },
+    onError: async (error, newPost, context) => {
+      await ctx.posts.getAll.invalidate();
+      if (context?.previousPosts) {
+        ctx.posts.getAll.setData(undefined, () => context?.previousPosts);
+      }
+
       toast.error("Failed to post");
       reset();
     },
-    onSuccess: async () => {
+    onSettled: async () => {
       await ctx.posts.getAll.invalidate();
       toast.success("Posted!");
       reset();
