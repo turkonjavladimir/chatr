@@ -1,11 +1,11 @@
-import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 
-import { LoadingSpinner } from "~/components/common";
+import { Avatar, LoadingSpinner } from "~/components/common";
+import { formatDistance } from "date-fns";
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number] & {
   isLoading?: boolean;
@@ -13,6 +13,15 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number] & {
 const PostView = (props: PostWithUser) => {
   const ctx = api.useContext();
   const { data: sessionData } = useSession();
+
+  const elapsedTime = formatDistance(
+    new Date(props?.updatedAt ?? ""),
+    new Date(),
+    {
+      includeSeconds: true,
+      addSuffix: true,
+    }
+  );
 
   const { mutate, isLoading: isDeleting } = api.posts.deleteById.useMutation({
     onSuccess: async () => {
@@ -34,14 +43,13 @@ const PostView = (props: PostWithUser) => {
           : ""
       }`}
     >
-      <Image
-        className="flex h-12 w-12 items-center justify-center rounded-full"
-        src={props?.author.image ?? ""}
-        alt={props?.author.name ?? ""}
-        width={48}
-        height={48}
-      />
-
+      <div>
+        <Avatar
+          size="lg"
+          label={props?.author.name ?? ""}
+          imageUrl={props?.author?.image ?? ""}
+        />
+      </div>
       <div className="flex w-full min-w-0 flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-baseline gap-2">
@@ -54,11 +62,7 @@ const PostView = (props: PostWithUser) => {
             <span className="truncate text-xs">menu</span>
           </div>
         </div>
-        <span className="truncate text-sm text-gray-500">
-          {new Date(props?.createdAt).toLocaleString("en-US", {
-            timeZone: "UTC",
-          })}
-        </span>
+        <span className="truncate text-sm text-gray-500">{elapsedTime}</span>
         <div>
           <span>{props?.content}</span>
         </div>
