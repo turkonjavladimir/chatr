@@ -19,6 +19,8 @@
     "@trpc/react-query": "^10.18.0",
     "@trpc/server": "^10.18.0",
     "@types/uuid": "^9.0.1",
+    "class-variance-authority": "^0.5.1",
+    "date-fns": "^2.29.3",
     "next": "^13.2.4",
     "next-auth": "4.20.1",
     "react": "18.2.0",
