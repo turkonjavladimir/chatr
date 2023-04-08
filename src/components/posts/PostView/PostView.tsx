@@ -100,7 +100,9 @@ const PostView = (props: PostWithUser) => {
     <div
       onClick={handlePostClick}
       className={`flex gap-4 rounded-xl bg-gray-100 p-4 ${
-        isLoading || isDeleting ? "animate-pulse opacity-70" : "cursor-pointer"
+        isLoading || isDeleting
+          ? "pointer-events-none animate-pulse opacity-70"
+          : "cursor-pointer"
       }`}
     >
       <div className="flex w-full min-w-0 flex-col gap-1">
