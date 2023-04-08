@@ -10,41 +10,6 @@ import type { RouterOutputs } from "~/utils/api";
 
 import { Avatar, LoadingSpinner } from "~/components/common";
 
-const PostActions = ({ id }: { id: string }) => {
-  const router = useRouter();
-  const ctx = api.useContext();
-
-  const { mutate, isLoading: isDeleting } = api.posts.deleteById.useMutation({
-    onSuccess: async () => {
-      await ctx.posts.getAll.invalidate();
-      await ctx.posts.getByUserId.invalidate();
-      toast.success("Deleted");
-
-      void router.push("/");
-    },
-    onError: () => {
-      toast.error("Failed to delete");
-    },
-  });
-
-  return (
-    <div>
-      <button
-        disabled={isDeleting}
-        onClick={() =>
-          mutate({
-            id,
-          })
-        }
-        className="inline-flex w-24 items-center justify-center gap-2 rounded-lg border bg-red-500 py-1 text-sm font-semibold text-white hover:bg-red-600 disabled:pointer-events-auto disabled:opacity-50"
-      >
-        Delete
-        {isDeleting && <LoadingSpinner />}
-      </button>
-    </div>
-  );
-};
-
 type Author = RouterOutputs["posts"]["getAll"][number]["author"];
 const UserInfo = ({
   author,
@@ -102,7 +67,7 @@ const PostView = (props: PostWithUser) => {
     addSuffix: true,
   });
 
-  const { isLoading: isDeleting } = api.posts.deleteById.useMutation({
+  const { mutate, isLoading: isDeleting } = api.posts.deleteById.useMutation({
     onSuccess: async () => {
       await ctx.posts.getAll.invalidate();
       await ctx.posts.getByUserId.invalidate();
@@ -119,11 +84,14 @@ const PostView = (props: PostWithUser) => {
 
   const isPostOwner = author.id === sessionData?.user?.id;
 
-  const handlePostClick = (e: React.MouseEvent) => {
-    if (
-      ((e.target as HTMLElement).tagName.toLowerCase() !== "a" && isLoading) ||
-      isDeleting
-    ) {
+  const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const targetTag = (e.target as HTMLElement).tagName.toLowerCase();
+
+    if (isLoading || isDeleting) {
+      return;
+    }
+
+    if (targetTag !== "a" && targetTag !== "button") {
       void router.push(`/post/${id}`);
     }
   };
@@ -131,27 +99,37 @@ const PostView = (props: PostWithUser) => {
   return (
     <div
       onClick={handlePostClick}
-      className={`cursor-pointer truncate text-sm text-gray-500`}
+      className={`flex gap-4 rounded-xl bg-gray-100 p-4 ${
+        isLoading || isDeleting ? "animate-pulse opacity-70" : "cursor-pointer"
+      }`}
     >
-      <div
-        className={`flex gap-4 rounded-xl bg-gray-100 p-4 ${
-          isLoading || isDeleting
-            ? "pointer-events-none animate-pulse opacity-70"
-            : ""
-        }`}
-      >
-        <div className="flex w-full min-w-0 flex-col gap-1">
-          <UserInfo author={author}>
-            <span className="truncate text-sm text-gray-500 hover:underline">
-              {elapsedTime}
-            </span>
-            <div>
-              <span className="text-black">{content}</span>
-            </div>
+      <div className="flex w-full min-w-0 flex-col gap-1">
+        <UserInfo author={author}>
+          <Link
+            href={`/post/${id}`}
+            className="truncate text-sm text-gray-500 hover:underline"
+          >
+            {elapsedTime}
+          </Link>
+          <div>
+            <span className="text-black">{content}</span>
+          </div>
 
-            {isPostOwner && <PostActions id={id} />}
-          </UserInfo>
-        </div>
+          {isPostOwner && (
+            <button
+              disabled={isDeleting || isLoading}
+              onClick={() =>
+                mutate({
+                  id,
+                })
+              }
+              className="inline-flex w-24 items-center justify-center gap-2 rounded-lg border bg-red-500 py-1 text-sm font-semibold text-white hover:bg-red-600 disabled:pointer-events-auto disabled:opacity-50"
+            >
+              Delete
+              {isDeleting && <LoadingSpinner />}
+            </button>
+          )}
+        </UserInfo>
       </div>
     </div>
   );
