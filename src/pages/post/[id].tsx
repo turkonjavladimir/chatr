@@ -1,11 +1,11 @@
-import type { GetStaticProps, NextPage } from "next";
-import { useSession } from "next-auth/react";
 import Head from "next/head";
+import type { GetStaticProps, NextPage } from "next";
 
 import PageLayout from "~/components/layout";
 import { PostView } from "~/components/posts";
-import { generateSSGHelper } from "~/server/api/helpers/ssgHelper";
+
 import { api } from "~/utils/api";
+import { generateSSGHelper } from "~/server/api/helpers/ssgHelper";
 
 const SinglePost: NextPage<{ id: string }> = ({ id }) => {
   const { data: postData } = api.posts.getById.useQuery({ id });
