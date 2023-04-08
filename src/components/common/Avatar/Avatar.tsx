@@ -3,7 +3,7 @@ import type { HTMLAttributes } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const avatar = cva(
-  "inline-flex items-center justify-center rounded-full cursor-pointer md:text-sm",
+  "inline-flex items-center justify-center rounded-full md:text-sm",
   {
     variants: {
       size: {
