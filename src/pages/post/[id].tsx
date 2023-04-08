@@ -15,9 +15,7 @@ const SinglePost: NextPage<{ id: string }> = ({ id }) => {
   return (
     <>
       <Head>
-        <title>{`${postData?.author?.name as string}: ${
-          postData?.content
-        }`}</title>
+        <title>{`${postData?.author?.name ?? ""}: ${postData?.content}`}</title>
       </Head>
       <PageLayout>
         <PostView {...postData} />
@@ -28,7 +26,7 @@ const SinglePost: NextPage<{ id: string }> = ({ id }) => {
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = generateSSGHelper();
-  const id = context?.params?.id as string;
+  const id = context?.params?.id ?? "";
 
   if (typeof id !== "string") throw new Error("Id is not a string");
 
