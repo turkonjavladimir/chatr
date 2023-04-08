@@ -91,7 +91,7 @@ const PostView = (props: PostWithUser) => {
       return;
     }
 
-    if (targetTag !== "a" && targetTag !== "button") {
+    if (targetTag !== "a" && targetTag !== "button" && targetTag !== "img") {
       void router.push(`/post/${id}`);
     }
   };
