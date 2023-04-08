@@ -142,7 +142,7 @@ const PostForm = () => {
                 name="content"
                 aria-invalid={errors.content ? "true" : "false"}
                 placeholder={`What's happening?`}
-                maxLength={280}
+                maxLength={10000}
                 className="h-24 w-full resize-none rounded-t-xl px-3 py-2 text-base text-gray-700 placeholder-gray-500 outline-none transition-all disabled:bg-white"
               />
 
