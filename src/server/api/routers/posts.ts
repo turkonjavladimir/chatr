@@ -12,6 +12,18 @@ export const postsRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
   }),
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.post.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          author: true,
+        },
+      });
+    }),
   create: protectedProcedure
     .input(z.object({ content: z.string() }))
     .mutation(({ ctx, input }) => {
