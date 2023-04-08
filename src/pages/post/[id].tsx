@@ -18,7 +18,7 @@ const SinglePost: NextPage<{ id: string }> = ({ id }) => {
         <title>{`${postData?.author?.name ?? ""}: ${postData?.content}`}</title>
       </Head>
       <PageLayout>
-        <PostView {...postData} />
+        <PostView {...postData} redirectOnDelete={true} />
       </PageLayout>
     </>
   );

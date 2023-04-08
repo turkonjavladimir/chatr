@@ -1,23 +1,31 @@
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
+import { formatDistance } from "date-fns";
 import { useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 
 import { Avatar, LoadingSpinner } from "~/components/common";
-import { formatDistance } from "date-fns";
-import Link from "next/link";
-import { useRouter } from "next/router";
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number] & {
   isLoading?: boolean;
+  redirectOnDelete?: boolean;
 };
 const PostView = (props: PostWithUser) => {
-  const { id, author, createdAt, content, isLoading } = props;
+  const router = useRouter();
   const ctx = api.useContext();
   const { data: sessionData } = useSession();
 
-  const router = useRouter();
+  const {
+    id,
+    author,
+    createdAt,
+    content,
+    isLoading,
+    redirectOnDelete = false,
+  } = props;
 
   const elapsedTime = formatDistance(new Date(createdAt ?? ""), new Date(), {
     includeSeconds: true,
@@ -27,9 +35,12 @@ const PostView = (props: PostWithUser) => {
   const { mutate, isLoading: isDeleting } = api.posts.deleteById.useMutation({
     onSuccess: async () => {
       await ctx.posts.getAll.invalidate();
+      await ctx.posts.getByUserId.invalidate();
       toast.success("Deleted");
 
-      void router.push("/");
+      if (redirectOnDelete) {
+        void router.push("/");
+      }
     },
     onError: () => {
       toast.error("Failed to delete");
@@ -46,20 +57,26 @@ const PostView = (props: PostWithUser) => {
           : ""
       }`}
     >
-      <div>
+      <Link href={`/${author?.id ?? ""}`}>
         <Avatar
           size="lg"
           label={author.name ?? ""}
           imageUrl={author?.image ?? ""}
         />
-      </div>
+      </Link>
       <div className="flex w-full min-w-0 flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-baseline gap-2">
-            <span className="truncate font-semibold">{author.name}</span>
-            <span className="truncate text-sm font-semibold lowercase text-gray-500">{`@${
-              author.name ?? ""
-            }`}</span>
+            <Link
+              href={`/${author.id}`}
+              className="truncate font-semibold hover:underline"
+            >
+              {author.name}
+            </Link>
+            <Link
+              href={`/${author.id}`}
+              className="truncate text-sm font-semibold lowercase text-gray-500 hover:underline"
+            >{`@${author.name?.toLowerCase() ?? ""}`}</Link>
           </div>
           <div>
             <span className="truncate text-xs">menu</span>
