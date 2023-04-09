@@ -1,14 +1,45 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useRouter } from "next/router";
-import { toast } from "react-hot-toast";
+
 import { formatDistance } from "date-fns";
 import { useSession } from "next-auth/react";
 
-import { api } from "~/utils/api";
+import { usePost } from "../hooks/usePost";
+
 import type { RouterOutputs } from "~/utils/api";
 
 import { Avatar, LoadingSpinner } from "~/components/common";
+import { useHandlePostClick } from "../hooks/useHandlePostClick";
+
+type PostActionsProps = {
+  postId: string;
+  isLikedByUser: boolean;
+};
+const PostActions = ({ postId, isLikedByUser }: PostActionsProps) => {
+  const { handleLike, handleUnlike, isLiking, isUnliking } = usePost({
+    postId,
+  });
+  return (
+    <div className="mt-3 grid grid-cols-1 justify-start gap-3 sm:grid-cols-4">
+      <button
+        disabled={isLiking || isUnliking}
+        onClick={() => {
+          if (!isLikedByUser) {
+            handleLike();
+          } else {
+            handleUnlike();
+          }
+        }}
+        className={`w-26 inline-flex items-center justify-center gap-2 rounded-lg border py-3 text-sm font-semibold text-gray-700 transition-colors disabled:pointer-events-auto disabled:opacity-50 ${
+          isLikedByUser ? "bg-blue-200" : "bg-gray-200"
+        }`}
+      >
+        {isLikedByUser ? "Unlike" : "Like"}
+        {(isLiking || isUnliking) && <LoadingSpinner />}
+      </button>
+    </div>
+  );
+};
 
 type Author = RouterOutputs["posts"]["getAll"][number]["author"];
 const UserInfo = ({
@@ -26,7 +57,7 @@ const UserInfo = ({
         imageUrl={author?.image ?? ""}
       />
     </Link>
-    <div className="ml-4 flex flex-col gap-1">
+    <div className="ml-4 flex w-full flex-col gap-1">
       <div className="flex min-w-0 items-baseline gap-2">
         <Link
           href={`/${author.id}`}
@@ -49,52 +80,36 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number] & {
   redirectOnDelete?: boolean;
 };
 const PostView = (props: PostWithUser) => {
-  const router = useRouter();
-  const ctx = api.useContext();
-  const { data: sessionData } = useSession();
-
   const {
-    id,
+    id: postId,
     author,
     createdAt,
     content,
     isLoading,
+    likes,
+    isLikedByUser,
     redirectOnDelete = false,
   } = props;
+
+  const { handleDeletePost, isDeleting } = usePost({
+    postId,
+    redirect: redirectOnDelete,
+  });
+
+  const { data: sessionData } = useSession();
+
+  const isPostOwner = author.id === sessionData?.user?.id;
 
   const elapsedTime = formatDistance(new Date(createdAt ?? ""), new Date(), {
     includeSeconds: true,
     addSuffix: true,
   });
 
-  const { mutate, isLoading: isDeleting } = api.posts.deleteById.useMutation({
-    onSuccess: async () => {
-      await ctx.posts.getAll.invalidate();
-      await ctx.posts.getByUserId.invalidate();
-      toast.success("Deleted");
-
-      if (redirectOnDelete) {
-        void router.push("/");
-      }
-    },
-    onError: () => {
-      toast.error("Failed to delete");
-    },
+  const { handlePostClick } = useHandlePostClick({
+    postId,
+    isDeleting,
+    isLoading: isLoading ?? false,
   });
-
-  const isPostOwner = author.id === sessionData?.user?.id;
-
-  const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const targetTag = (e.target as HTMLElement).tagName.toLowerCase();
-
-    if (isLoading || isDeleting) {
-      return;
-    }
-
-    if (targetTag !== "a" && targetTag !== "button" && targetTag !== "img") {
-      void router.push(`/post/${id}`);
-    }
-  };
 
   return (
     <div
@@ -105,10 +120,10 @@ const PostView = (props: PostWithUser) => {
           : "cursor-pointer"
       }`}
     >
-      <div className="flex w-full min-w-0 flex-col gap-1">
+      <div className="flex min-w-0 grow flex-col gap-1">
         <UserInfo author={author}>
           <Link
-            href={`/post/${id}`}
+            href={`/post/${postId}`}
             className="truncate text-sm text-gray-500 hover:underline"
           >
             {elapsedTime}
@@ -117,20 +132,22 @@ const PostView = (props: PostWithUser) => {
             <span className="text-black">{content}</span>
           </div>
 
+          <div className="my-1 flex items-center justify-between gap-3 text-sm">
+            <span>{likes?.length ?? "0"} likes</span>
+            <span>Comments</span>
+          </div>
+
           {isPostOwner && (
             <button
               disabled={isDeleting || isLoading}
-              onClick={() =>
-                mutate({
-                  id,
-                })
-              }
+              onClick={handleDeletePost}
               className="inline-flex w-24 items-center justify-center gap-2 rounded-lg border bg-red-500 py-1 text-sm font-semibold text-white hover:bg-red-600 disabled:pointer-events-auto disabled:opacity-50"
             >
               Delete
               {isDeleting && <LoadingSpinner />}
             </button>
           )}
+          <PostActions isLikedByUser={isLikedByUser} postId={postId} />
         </UserInfo>
       </div>
     </div>
