@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { toast } from "react-hot-toast";
-import type { Post, User } from "@prisma/client";
+import type { Post, User, Like } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { SubmitHandler } from "react-hook-form";
 
@@ -10,6 +10,7 @@ import { api } from "~/utils/api";
 import useZodForm from "~/utils/hooks/useZodForm";
 
 import { Avatar, CharacterCount, LoadingSpinner } from "~/components/common";
+import { usePost } from "../hooks/usePost";
 
 const MediaButtons = () => {
   return (
@@ -34,6 +35,13 @@ const postSchema = z.object({
   content: z.string().min(1).max(280).trim(),
 });
 type PostSchemaValidation = z.infer<typeof postSchema>;
+
+export type OptimisticPost = Post & {
+  author: User;
+  isLoading: boolean;
+  likes: Like[];
+  isLikedByUser: boolean;
+};
 
 const PostForm = () => {
   const { data: sessionData } = useSession();
@@ -77,7 +85,8 @@ const PostForm = () => {
             emailVerified: null,
           },
           isLoading: true,
-        } as Post & { author: User; isLoading: boolean };
+          isLikedByUser: false,
+        } as OptimisticPost;
 
         if (!prev) {
           return [optimisticPost];
@@ -114,14 +123,6 @@ const PostForm = () => {
     <div className="flex w-full items-start gap-4">
       <div className="flex grow flex-col">
         <div className="flex gap-4 rounded-xl bg-gray-100 p-4 shadow-sm">
-          {/*         <Image
-            className="flex h-12 w-12 items-center justify-center rounded-full"
-            src={sessionData?.user?.image ?? ""}
-            alt={sessionData?.user?.name ?? ""}
-            width={48}
-            height={48}
-          /> */}
-
           <Avatar
             size="lg"
             label={sessionData?.user.name ?? ""}
