@@ -15,7 +15,6 @@ const Profile: NextPage<{ slug: string }> = ({ slug }) => {
 
   if (!posts || posts.length === 0) return <span>No posts yet</span>;
 
-  console.log("posts", posts);
   return (
     <>
       <PageLayout>
