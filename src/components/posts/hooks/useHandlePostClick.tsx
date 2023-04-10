@@ -23,7 +23,14 @@ export const useHandlePostClick = ({
       return;
     }
 
-    if (targetTag !== "a" && targetTag !== "button" && targetTag !== "img") {
+    if (
+      targetTag !== "a" &&
+      targetTag !== "button" &&
+      targetTag !== "img" &&
+      targetTag !== "svg" &&
+      targetTag !== "path" &&
+      targetTag !== "span"
+    ) {
       const targetPath = `/post/${postId}`;
 
       // Check if the target path is the same as the current path
