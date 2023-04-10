@@ -3,6 +3,10 @@ import { toast } from "react-hot-toast";
 
 import { api } from "~/utils/api";
 
+import { v4 as uuidv4 } from "uuid";
+import { useSession } from "next-auth/react";
+import type { Like } from "@prisma/client";
+
 type PostProps = {
   postId: string;
   redirect?: boolean;
@@ -11,41 +15,47 @@ type PostProps = {
 export const usePost = ({ postId, redirect }: PostProps) => {
   const ctx = api.useContext();
   const router = useRouter();
+  const { data: sessionData } = useSession();
 
   const { mutate: likePost, isLoading: isLiking } = api.likes.like.useMutation({
-    /*     onMutate: async () => {
-      // cancel all outgoing refetches (so they don't overwrite our optimistic update)
+    onMutate: async ({ postId }) => {
       await ctx.likes.getLikesByPostId.cancel();
 
-      // Snapshot the previous value
-      const previousLikes = ctx.likes.getLikesByPostId.getData({ postId: id });
-      console.log("hello like", previousLikes);
-
-      // Optimistically update to the new value
-      ctx.likes.getLikesByPostId.setData({ postId: id }, (prev) => {
-        const optimisticLike = {
-          id: uuidv4(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: sessionData?.user?.id,
-          postId: id,
-          user: sessionData?.user,
-          isLikedByUser: true,
-        };
-        console.log(optimisticLike);
-        if (!prev) {
-          return [optimisticLike];
-        }
-
-        return [optimisticLike, ...prev];
+      // get a snapshot of current data
+      const previousLikesByPostId = ctx.likes.getLikesByPostId.getData({
+        postId,
       });
 
-      return { previousLikes };
-    }, */
-    onSettled: async () => {
-      await ctx.posts.getAll.invalidate();
+      ctx.likes.getLikesByPostId.setData({ postId }, (prev) => {
+        const currentLikes = prev?.likesById ?? [];
+        const currentCount = currentLikes.length;
+
+        const optimisticLike = {
+          id: uuidv4(),
+          postId: postId,
+          userId: sessionData?.user?.id ?? "",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Like;
+
+        // if prev exists, return new data
+        return {
+          likedByCurrentUser: true,
+          likesById: [optimisticLike, ...currentLikes],
+          count: currentCount + 1,
+        };
+      });
+
+      // rollback to previous value if mutation fails
+      return {
+        previousLikesByPostId,
+      };
+    },
+    onSettled: () => {
+      /*       await ctx.posts.getAll.invalidate();
       await ctx.posts.getById.invalidate();
       await ctx.posts.getByUserId.invalidate();
+      await ctx.likes.getLikesByPostId.invalidate(); */
       toast.success("Liked!");
     },
     onError: () => {
@@ -55,29 +65,46 @@ export const usePost = ({ postId, redirect }: PostProps) => {
 
   const { mutate: unlikePost, isLoading: isUnliking } =
     api.likes.unlike.useMutation({
-      /*     onMutate: async ({ postId }) => {
-      // cancel all outgoing refetches (so they don't overwrite our optimistic update)
-      await ctx.likes.getLikesByPostId.cancel();
+      onMutate: async ({ postId }) => {
+        await ctx.likes.getLikesByPostId.cancel();
 
-      // Snapshot the previous value
-      const previousLikes = ctx.likes.getLikesByPostId.getData({ postId: id });
+        // get a snapshot of current data
+        const previousLikesByPostId = ctx.likes.getLikesByPostId.getData({
+          postId,
+        });
 
-      console.log("previousLikes", previousLikes);
-      console.log("postId", postId);
+        ctx.likes.getLikesByPostId.setData({ postId }, (prev) => {
+          const currentLikes = prev?.likesById ?? [];
+          const currentCount = currentLikes.length;
 
-      // Optimistically update to the new value
-      ctx.likes.getLikesByPostId.setData({ postId }, (prev) => {
-        if (!prev) return previousLikes;
+          // Find the index of the user's like
+          const likeIndex = currentLikes.findIndex(
+            (like) => like.userId === sessionData?.user?.id
+          );
 
-        return prev?.filter((like) => like.postId !== postId);
-      });
+          // Remove the user's like from the array
+          const updatedLikes = [
+            ...currentLikes.slice(0, likeIndex),
+            ...currentLikes.slice(likeIndex + 1),
+          ];
 
-      return { previousLikes };
-    }, */
-      onSettled: async () => {
-        await ctx.posts.getAll.invalidate();
+          return {
+            likedByCurrentUser: false,
+            likesById: updatedLikes,
+            count: currentCount === 0 ? 0 : currentCount - 1,
+          };
+        });
+
+        // rollback to previous value if mutation fails
+        return {
+          previousLikesByPostId,
+        };
+      },
+      onSettled: () => {
+        /*        await ctx.likes.getLikesByPostId.invalidate();
         await ctx.posts.getById.invalidate();
         await ctx.posts.getByUserId.invalidate();
+        await ctx.posts.getAll.invalidate(); */
         toast.success("Unliked!");
       },
       onError: () => {

@@ -6,36 +6,46 @@ import { useSession } from "next-auth/react";
 
 import { usePost } from "../hooks/usePost";
 
-import type { RouterOutputs } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 
 import { Avatar, LoadingSpinner } from "~/components/common";
 import { useHandlePostClick } from "../hooks/useHandlePostClick";
+
+import { HeartIcon } from "@heroicons/react/24/solid";
 
 type PostActionsProps = {
   postId: string;
   isLikedByUser: boolean;
 };
-const PostActions = ({ postId, isLikedByUser }: PostActionsProps) => {
+const PostActions = ({ postId /*  */ }: PostActionsProps) => {
   const { handleLike, handleUnlike, isLiking, isUnliking } = usePost({
     postId,
   });
+
+  const { data: likes } = api.likes.getLikesByPostId.useQuery({ postId });
+
+  const handleClick = () => {
+    if (!likes?.likedByCurrentUser) {
+      void handleLike();
+    } else {
+      void handleUnlike();
+    }
+  };
+
   return (
-    <div className="mt-3 grid grid-cols-1 justify-start gap-3 sm:grid-cols-4">
+    <div className="mt-3">
       <button
         disabled={isLiking || isUnliking}
-        onClick={() => {
-          if (!isLikedByUser) {
-            handleLike();
-          } else {
-            handleUnlike();
-          }
-        }}
-        className={`w-26 inline-flex items-center justify-center gap-2 rounded-lg border py-3 text-sm font-semibold text-gray-700 transition-colors disabled:pointer-events-auto disabled:opacity-50 ${
-          isLikedByUser ? "bg-blue-200" : "bg-gray-200"
-        }`}
+        onClick={handleClick}
+        className={`group inline-flex items-center justify-center rounded-lg border transition-colors ${
+          likes?.likedByCurrentUser ? "bg-pink-200/60" : "bg-gray-200/60"
+        } px-5 py-2 text-sm font-semibold text-gray-700 transition-colors disabled:pointer-events-auto`}
       >
-        {isLikedByUser ? "Unlike" : "Like"}
-        {(isLiking || isUnliking) && <LoadingSpinner />}
+        <HeartIcon
+          className={`h-5 w-5 transition-colors group-hover:text-pink-500 ${
+            likes?.likedByCurrentUser ? "text-pink-500" : "text-gray-500"
+          }`}
+        />
       </button>
     </div>
   );
@@ -86,10 +96,11 @@ const PostView = (props: PostWithUser) => {
     createdAt,
     content,
     isLoading,
-    likes,
+    /*     likes, */
     isLikedByUser,
     redirectOnDelete = false,
   } = props;
+  const { data: likes } = api.likes.getLikesByPostId.useQuery({ postId });
 
   const { handleDeletePost, isDeleting } = usePost({
     postId,
@@ -133,7 +144,9 @@ const PostView = (props: PostWithUser) => {
           </div>
 
           <div className="my-1 flex items-center justify-between gap-3 text-sm">
-            <span>{likes?.length ?? "0"} likes</span>
+            <span>{`${likes?.count ?? 0} like${
+              likes?.count === 1 ? "" : "s"
+            }`}</span>
             <span>Comments</span>
           </div>
 

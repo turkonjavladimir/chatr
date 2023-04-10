@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
 export const likesRouter = createTRPCRouter({
@@ -17,7 +17,7 @@ export const likesRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Post not found" });
       }
 
-      // check for an existing like
+      // check for existing like
       const existingLike = await ctx.prisma.like.findUnique({
         where: {
           userId_postId: {
@@ -31,7 +31,7 @@ export const likesRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Already liked" });
       }
 
-      // If the current user is the author, delete the post
+      // create like
       return ctx.prisma.like.create({
         data: {
           postId: input.postId,
@@ -64,16 +64,38 @@ export const likesRouter = createTRPCRouter({
         },
       });
     }),
-  /*   getLikesByPostId: publicProcedure
+  getLikesByPostId: publicProcedure
     .input(z.object({ postId: z.string() }))
-    .query(({ ctx, input }) => {
-      return ctx.prisma.like.findMany({
+    .query(async ({ ctx, input }) => {
+      const likesById = await ctx.prisma.like.findMany({
         where: {
           postId: input.postId,
         },
-        include: {
-          user: true,
-        },
       });
-    }), */
+
+      const likedByCurrentUser = likesById.some(
+        (like) => like.userId === ctx?.session?.user.id
+      );
+
+      return { likesById, count: likesById?.length, likedByCurrentUser };
+    }),
+  getAll: publicProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+      })
+    )
+    .query(async ({ ctx }) => {
+      const likes = await ctx.prisma.like.findMany();
+
+      const likedByCurrentUser = likes.some(
+        (like) => like.userId === ctx?.session?.user.id
+      );
+
+      return {
+        likes,
+        count: likes?.length,
+        likedByCurrentUser,
+      };
+    }),
 });
