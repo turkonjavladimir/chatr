@@ -1,7 +1,7 @@
 import type { GetStaticProps, NextPage } from "next";
 
 import PageLayout from "~/components/layout";
-import { PostView } from "~/components/posts";
+import { PostCard } from "~/components/posts";
 
 import { api } from "~/utils/api";
 import { generateSSGHelper } from "~/server/api/helpers/ssgHelper";
@@ -21,7 +21,7 @@ const Profile: NextPage<{ slug: string }> = ({ slug }) => {
         <div>
           <h1>Profile</h1>
           {posts.map((postData) => (
-            <PostView key={postData.id} {...postData} />
+            <PostCard key={postData.id} {...postData} />
           ))}
         </div>
       </PageLayout>

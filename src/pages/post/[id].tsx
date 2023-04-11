@@ -2,7 +2,7 @@ import Head from "next/head";
 import type { GetStaticProps, NextPage } from "next";
 
 import PageLayout from "~/components/layout";
-import { PostView } from "~/components/posts";
+import { PostCard } from "~/components/posts";
 
 import { api } from "~/utils/api";
 import { generateSSGHelper } from "~/server/api/helpers/ssgHelper";
@@ -18,7 +18,7 @@ const SinglePost: NextPage<{ id: string }> = ({ id }) => {
         <title>{`${postData?.author?.name ?? ""}: ${postData?.content}`}</title>
       </Head>
       <PageLayout>
-        <PostView {...postData} redirectOnDelete={true} />
+        <PostCard {...postData} redirectOnDelete={true} />
       </PageLayout>
     </>
   );

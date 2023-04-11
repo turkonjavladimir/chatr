@@ -1,2 +1,2 @@
-export { default as PostView } from "./PostView";
+export { default as PostCard } from "./PostCard";
 export { default as PostForm } from "./PostForm";

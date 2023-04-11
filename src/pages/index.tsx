@@ -4,7 +4,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import PageLayout from "~/components/layout";
 
 import { api } from "~/utils/api";
-import { PostView, PostForm } from "~/components/posts";
+import { PostCard, PostForm } from "~/components/posts";
 
 const Feed = () => {
   const { data: posts, isLoading: postsLoading } = api.posts.getAll.useQuery();
@@ -17,7 +17,7 @@ const Feed = () => {
     <div className="rounded-xl-4 flex gap-4">
       <div className="mx-4 flex grow flex-col gap-3">
         {posts?.map((postData) => (
-          <PostView key={postData?.id} {...postData} />
+          <PostCard key={postData?.id} {...postData} />
         ))}
       </div>
     </div>
