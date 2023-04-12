@@ -17,7 +17,7 @@ type PostActionsProps = {
 };
 const PostActions = ({ postId }: PostActionsProps) => {
   const { data: sessionData } = useSession();
-  const { toast } = useToast({ amount: 1 });
+  const { toast } = useToast();
   const { handleLike, handleUnlike, isLiking, isUnliking } = usePost({
     postId,
   });

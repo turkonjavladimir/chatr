@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { toast } from "react-hot-toast";
+
 import type { Post, User, Like } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { SubmitHandler } from "react-hook-form";
@@ -10,7 +10,7 @@ import { api } from "~/utils/api";
 import useZodForm from "~/utils/hooks/useZodForm";
 
 import { Avatar, CharacterCount, LoadingSpinner } from "~/components/common";
-import { usePost } from "../hooks/usePost";
+import useToast from "~/utils/hooks/useToast";
 
 const MediaButtons = () => {
   return (
@@ -45,6 +45,7 @@ export type OptimisticPost = Post & {
 
 const PostForm = () => {
   const { data: sessionData } = useSession();
+  const { toast } = useToast();
 
   const {
     register,
