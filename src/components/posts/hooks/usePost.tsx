@@ -9,10 +9,9 @@ import type { Like } from "@prisma/client";
 
 type PostProps = {
   postId: string;
-  redirect?: boolean;
 };
 
-export const usePost = ({ postId, redirect }: PostProps) => {
+export const usePost = ({ postId }: PostProps) => {
   const ctx = api.useContext();
   const router = useRouter();
   const { data: sessionData } = useSession();
@@ -119,7 +118,7 @@ export const usePost = ({ postId, redirect }: PostProps) => {
         await ctx.posts.getByUserId.invalidate();
         toast.success("Deleted");
 
-        if (redirect) {
+        if (router.query.id) {
           void router.push("/");
         }
       },
