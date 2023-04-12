@@ -7,12 +7,17 @@ import {
 
 import { api } from "~/utils/api";
 import { usePost } from "../../hooks/usePost";
+import { useSession } from "next-auth/react";
+
+import useToast from "~/utils/hooks/useToast";
 
 type PostActionsProps = {
   postId: string;
   isLikedByUser: boolean;
 };
 const PostActions = ({ postId }: PostActionsProps) => {
+  const { data: sessionData } = useSession();
+  const { toast } = useToast({ amount: 1 });
   const { handleLike, handleUnlike, isLiking, isUnliking } = usePost({
     postId,
   });
@@ -20,6 +25,11 @@ const PostActions = ({ postId }: PostActionsProps) => {
   const { data: likes } = api.likes.getLikesByPostId.useQuery({ postId });
 
   const handleClick = () => {
+    if (!sessionData) {
+      toast.error("You must be logged in to like a post");
+      return;
+    }
+
     if (!likes?.likedByCurrentUser) {
       void handleLike();
     } else {
