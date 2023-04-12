@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import type { AppType } from "next/app";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
+import { Analytics } from "@vercel/analytics/react";
 
 const LazyToaster = lazy(() =>
   import("react-hot-toast").then((module) => ({ default: module.Toaster }))
@@ -29,6 +30,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <LazyToaster position="bottom-center" />
       </Suspense>
       <Component {...pageProps} />
+      <Analytics />
     </SessionProvider>
   );
 };
