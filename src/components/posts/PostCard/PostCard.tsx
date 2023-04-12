@@ -1,9 +1,6 @@
 import Link from "next/link";
 
 import { formatDistance } from "date-fns";
-import { useSession } from "next-auth/react";
-
-import { LoadingSpinner } from "~/components/common";
 
 import { usePost } from "../hooks/usePost";
 import { useHandlePostClick } from "../hooks/useHandlePostClick";
@@ -23,20 +20,13 @@ const PostCard = ({
   author,
   createdAt,
   content,
-  isLoading,
-  isLikedByUser,
-  redirectOnDelete = false,
+  isLoading: isPostLoading,
 }: PostWithUser) => {
   const { data: likes } = api.likes.getLikesByPostId.useQuery({ postId });
 
-  const { handleDeletePost, isDeleting } = usePost({
+  const { isDeleting } = usePost({
     postId,
-    redirect: redirectOnDelete,
   });
-
-  const { data: sessionData } = useSession();
-
-  const isPostOwner = author.id === sessionData?.user?.id;
 
   const elapsedTime = formatDistance(new Date(createdAt ?? ""), new Date(), {
     includeSeconds: true,
@@ -46,20 +36,20 @@ const PostCard = ({
   const { handlePostClick } = useHandlePostClick({
     postId,
     isDeleting,
-    isLoading: isLoading ?? false,
+    isLoading: isPostLoading ?? false,
   });
 
   return (
     <div
       onClick={handlePostClick}
       className={`flex gap-4 rounded-xl bg-gray-100 p-4 ${
-        isLoading || isDeleting
+        isPostLoading || isDeleting
           ? "pointer-events-none animate-pulse opacity-70"
           : "cursor-pointer"
       }`}
     >
       <div className="flex min-w-0 grow flex-col gap-1">
-        <AuthorInfo author={author}>
+        <AuthorInfo author={author} postId={postId}>
           <Link
             href={`/post/${postId}`}
             className="truncate text-sm text-gray-500 hover:underline"
@@ -71,18 +61,10 @@ const PostCard = ({
           </div>
 
           <SocialStats likesCount={likes?.count ?? 0} commentsCount={0} />
-          <PostActions isLikedByUser={isLikedByUser} postId={postId} />
-
-          {isPostOwner && (
-            <button
-              disabled={isDeleting || isLoading}
-              onClick={handleDeletePost}
-              className="mt-3 inline-flex w-24 items-center justify-center gap-2 rounded-lg border bg-red-500 py-1 text-sm font-semibold text-white hover:bg-red-600 disabled:pointer-events-auto disabled:opacity-50"
-            >
-              Delete
-              {isDeleting && <LoadingSpinner />}
-            </button>
-          )}
+          <PostActions
+            isLikedByUser={likes?.likedByCurrentUser ?? false}
+            postId={postId}
+          />
         </AuthorInfo>
       </div>
     </div>
