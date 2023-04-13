@@ -8,26 +8,29 @@ import { Avatar, Dropdown, MenuItem } from "~/components/common";
 
 import Icon, { type IconName } from "~/components/common/Icon/Icon";
 
-const HeaderContent = () => {
+const LogoAndSearch = () => {
   return (
-    <div className="flex gap-4">
+    <div className="flex w-full items-center gap-4">
       <div>
         <Link href="/">Logo</Link>
       </div>
 
-      <div>
-        <form role="search">
-          <label htmlFor="search-input" className="sr-only">
-            Search
-          </label>
-          <input id="search-input" type="search" placeholder="Search" />
-        </form>
-      </div>
+      <form role="search" className="flex grow">
+        <div className="flex max-w-xs grow rounded-lg bg-gray-100 px-2 shadow-sm ring-1 ring-inset ring-gray-100">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            className="block max-w-md flex-1 grow border-0 bg-transparent py-1.5 pl-1 text-gray-900 outline-none placeholder:text-gray-500 focus:ring-0 sm:text-sm sm:leading-6"
+            placeholder="# Explore"
+          />
+        </div>
+      </form>
     </div>
   );
 };
 
-const NavigationItem = ({ href, icon }: { href: string; icon: IconName }) => {
+const NavbarItem = ({ href, icon }: { href: string; icon: IconName }) => {
   const router = useRouter();
   const isActive = router.pathname === href;
 
@@ -41,7 +44,7 @@ const NavigationItem = ({ href, icon }: { href: string; icon: IconName }) => {
       >
         <Icon
           name={icon}
-          className={`h-5 w-5 ${isActive ? "text-sky-600" : "text-gray-500"}`}
+          className={`h-6 w-6 ${isActive ? "text-sky-600" : "text-gray-500"}`}
           variant={isActive ? "solid" : "outline"}
         />
       </Link>
@@ -49,7 +52,7 @@ const NavigationItem = ({ href, icon }: { href: string; icon: IconName }) => {
   );
 };
 
-const UserDropdownButton = ({
+const UserMenuButton = ({
   name,
   imageUrl,
 }: {
@@ -57,16 +60,23 @@ const UserDropdownButton = ({
   name: string;
 }) => {
   return (
-    <Menu.Button className="flex min-w-0 items-center rounded-full bg-gray-200 p-1 transition-colors hover:bg-gray-300">
-      <Avatar size="xs" imageUrl={imageUrl} label={name} />
-      <span className="mx-2 min-w-0 truncate text-xs font-semibold">
+    <Menu.Button className="flex max-w-[160px] items-center rounded-full bg-gray-100 p-1 transition-colors hover:bg-gray-200">
+      <span className="flex items-center">
+        <Avatar
+          size="xs"
+          imageUrl={imageUrl}
+          label={name}
+          className="min-w-0"
+        />
+      </span>
+      <span className="mx-2 truncate text-xs font-semibold text-gray-700">
         {name}
       </span>
     </Menu.Button>
   );
 };
 
-const MainNavigation = () => {
+const Navbar = () => {
   const { data: sessionData } = useSession();
   const { toast } = useToast();
 
@@ -84,53 +94,78 @@ const MainNavigation = () => {
   return (
     <nav className="flex items-center">
       <ul className="flex gap-2">
-        <NavigationItem href="/" icon="home" />
-        <NavigationItem href="/explore" icon="magnifyingGlass" />
-        <NavigationItem href="/messages" icon="envelope" />
-        <NavigationItem href="/notifications" icon="bell" />
+        <NavbarItem href="/" icon="home" />
+        <NavbarItem href="/explore" icon="magnifyingGlass" />
+        <NavbarItem href="/messages" icon="envelope" />
+        <NavbarItem href="/notifications" icon="bell" />
       </ul>
 
       <div className="mr-3 h-8 w-[1px] rounded-full bg-neutral-200" />
 
-      {sessionData && (
-        <Dropdown
-          button={
-            <UserDropdownButton
-              imageUrl={sessionData.user.image ?? ""}
-              name={sessionData.user.name ?? ""}
-            />
-          }
-        >
-          <div>
-            <span className="my-2 block px-2 text-xs font-semibold text-neutral-500">
-              {sessionData?.user?.email}
-            </span>
-            <MenuItem text="Profile" href={`/${sessionData?.user?.id}`} />
-            <MenuItem text="Settings" />
-            <MenuItem text="Logout" onClick={handleLogout} />
-          </div>
-        </Dropdown>
-      )}
+      <div className="flex items-center gap-3">
+        {sessionData && (
+          <Dropdown
+            button={
+              <UserMenuButton
+                imageUrl={sessionData.user.image ?? ""}
+                name={sessionData.user.name ?? ""}
+              />
+            }
+          >
+            <div>
+              <span className="my-2 block px-2 text-xs font-semibold text-neutral-400">
+                {sessionData?.user?.email}
+              </span>
+              <MenuItem text="Profile" href={`/${sessionData?.user?.id}`} />
+              <MenuItem text="Settings" />
+              <MenuItem text="Logout" onClick={handleLogout} />
+            </div>
+          </Dropdown>
+        )}
 
-      {!sessionData && (
-        <button
-          className="rounded-full bg-neutral-800 px-2 py-1 text-xs font-semibold text-white no-underline transition"
-          onClick={sessionData ? () => void signOut() : () => void signIn()}
-        >
-          {sessionData ? "Sign out" : "Sign in"}
+        {!sessionData && (
+          <button
+            className="rounded-full bg-neutral-800 px-2 py-1 text-xs font-semibold text-white no-underline transition"
+            onClick={sessionData ? () => void signOut() : () => void signIn()}
+          >
+            {sessionData ? "Sign out" : "Sign in"}
+          </button>
+        )}
+
+        <button aria-label="menu">
+          <Icon name="squares2X2" className="h-6 w-6 text-gray-500" />
         </button>
-      )}
-
-      {/* <button aria-label="More options">Menu</button> */}
+      </div>
     </nav>
   );
 };
 
 const Header = () => {
+  const { data: sessionData } = useSession();
   return (
-    <header className="flex items-center justify-between gap-3 px-4 py-2">
-      <HeaderContent />
-      <MainNavigation />
+    <header className="m-auto max-w-6xl">
+      <div className="flex h-16 w-full items-center justify-between gap-3 px-4 py-3">
+        {/* Mobile layout */}
+        <div className="flex w-full justify-between md:hidden">
+          <div className="flex items-center">
+            <Avatar
+              size="md"
+              imageUrl={sessionData?.user.image ?? ""}
+              label={sessionData?.user?.name ?? ""}
+            />
+          </div>
+
+          <div className="flex items-center">
+            <Link href="/">Logo</Link>
+          </div>
+        </div>
+
+        {/* Desktop layout */}
+        <div className="hidden w-full items-center justify-between md:flex">
+          <LogoAndSearch />
+          <Navbar />
+        </div>
+      </div>
     </header>
   );
 };
