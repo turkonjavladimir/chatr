@@ -8,6 +8,30 @@ import { Avatar, Dropdown, MenuItem } from "~/components/common";
 
 import Icon, { type IconName } from "~/components/common/Icon/Icon";
 
+type NavbatItemProps = {
+  href: string;
+  icon: IconName;
+};
+
+const navbatItems: NavbatItemProps[] = [
+  {
+    href: "/",
+    icon: "home",
+  },
+  {
+    href: "/explore",
+    icon: "magnifyingGlass",
+  },
+  {
+    href: "/messages",
+    icon: "envelope",
+  },
+  {
+    href: "/notifications",
+    icon: "bell",
+  },
+];
+
 const LogoAndSearch = () => {
   return (
     <div className="flex w-full items-center gap-4">
@@ -38,7 +62,7 @@ const NavbarItem = ({ href, icon }: { href: string; icon: IconName }) => {
     <li>
       <Link
         href={href}
-        className={`flex items-center gap-2 rounded-full p-2 ${
+        className={`flex items-center gap-2 rounded-full p-2 transition-colors hover:bg-sky-100 ${
           isActive ? "bg-sky-100" : "bg-transparent"
         }`}
       >
@@ -80,6 +104,10 @@ const Navbar = () => {
   const { data: sessionData } = useSession();
   const { toast } = useToast();
 
+  const navbarLinks = navbatItems.map((item) => (
+    <NavbarItem key={item?.href} icon={item?.icon} href={item?.href} />
+  ));
+
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -92,13 +120,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center">
-      <ul className="flex gap-2">
-        <NavbarItem href="/" icon="home" />
-        <NavbarItem href="/explore" icon="magnifyingGlass" />
-        <NavbarItem href="/messages" icon="envelope" />
-        <NavbarItem href="/notifications" icon="bell" />
-      </ul>
+    <nav className="flex w-full items-center justify-end">
+      <ul className="flex gap-2">{navbarLinks}</ul>
 
       <div className="mr-3 h-8 w-[1px] rounded-full bg-neutral-200" />
 
@@ -123,19 +146,19 @@ const Navbar = () => {
           </Dropdown>
         )}
 
-        {!sessionData && (
-          <button
-            className="rounded-full bg-neutral-800 px-2 py-1 text-xs font-semibold text-white no-underline transition"
-            onClick={sessionData ? () => void signOut() : () => void signIn()}
-          >
-            {sessionData ? "Sign out" : "Sign in"}
-          </button>
-        )}
-
         <button aria-label="menu">
           <Icon name="squares2X2" className="h-6 w-6 text-gray-500" />
         </button>
       </div>
+
+      {!sessionData && (
+        <button
+          className="mx-4 rounded-full bg-neutral-800 p-2 text-sm font-semibold text-white no-underline"
+          onClick={() => void signIn()}
+        >
+          Sign in
+        </button>
+      )}
     </nav>
   );
 };
@@ -148,11 +171,13 @@ const Header = () => {
         {/* Mobile layout */}
         <div className="flex w-full justify-between md:hidden">
           <div className="flex items-center">
-            <Avatar
-              size="md"
-              imageUrl={sessionData?.user.image ?? ""}
-              label={sessionData?.user?.name ?? ""}
-            />
+            {sessionData && (
+              <Avatar
+                size="md"
+                imageUrl={sessionData?.user.image ?? ""}
+                label={sessionData?.user?.name ?? ""}
+              />
+            )}
           </div>
 
           <div className="flex items-center">
