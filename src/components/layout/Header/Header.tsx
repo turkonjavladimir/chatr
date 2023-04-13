@@ -158,6 +158,8 @@ const Header = () => {
           <div className="flex items-center">
             <Link href="/">Logo</Link>
           </div>
+
+          <div className="flex items-center"></div>
         </div>
 
         {/* Desktop layout */}
