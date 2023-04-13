@@ -4,6 +4,7 @@ import {
   EnvelopeIcon as EnvelopeIconOutline,
   HomeIcon as HomeIconOutline,
   MagnifyingGlassIcon as MagnifyingGlassIconOutline,
+  Squares2X2Icon as Squares2X2IconOutline,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -11,6 +12,7 @@ import {
   EnvelopeIcon as EnvelopeIconSolid,
   HomeIcon as HomeIconSolid,
   MagnifyingGlassIcon as MagnifyingGlassIconSolid,
+  Squares2X2Icon as Squares2X2IconSolid,
 } from "@heroicons/react/24/solid";
 
 export const icons = {
@@ -29,6 +31,10 @@ export const icons = {
   magnifyingGlass: {
     outline: MagnifyingGlassIconOutline,
     solid: MagnifyingGlassIconSolid,
+  },
+  squares2X2: {
+    outline: Squares2X2IconOutline,
+    solid: Squares2X2IconSolid,
   },
 } as const;
 

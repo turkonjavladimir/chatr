@@ -1,7 +1,12 @@
 import { Fragment } from "react";
 import { useIcons } from "~/utils/hooks/useIcons";
 
-export type IconName = "home" | "envelope" | "magnifyingGlass" | "bell";
+export type IconName =
+  | "home"
+  | "envelope"
+  | "magnifyingGlass"
+  | "bell"
+  | "squares2X2";
 
 interface IconProps {
   name: IconName;
