@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { PropsWithChildren } from "react";
 
 import Header from "./layout/Header";
@@ -12,9 +11,7 @@ const PageLayout = ({ children }: PropsWithChildren) => {
       </header> */}
       <Header />
       <main className="flex h-screen justify-center">
-        <div className="h-full w-full overflow-y-scroll border-x border-slate-200 md:max-w-2xl">
-          {children}
-        </div>
+        <div className="h-full w-full md:max-w-2xl">{children}</div>
       </main>
     </>
   );

@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import { signIn, signOut, useSession } from "next-auth/react";
 
 import PageLayout from "~/components/layout";
 
@@ -25,8 +24,6 @@ const Feed = () => {
 };
 
 const Home: NextPage = () => {
-  const { data: sessionData } = useSession();
-
   return (
     <>
       <PageLayout>

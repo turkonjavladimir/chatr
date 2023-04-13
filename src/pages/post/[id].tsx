@@ -18,7 +18,11 @@ const SinglePost: NextPage<{ id: string }> = ({ id }) => {
         <title>{`${postData?.author?.name ?? ""}: ${postData?.content}`}</title>
       </Head>
       <PageLayout>
-        <PostCard {...postData} redirectOnDelete={true} />
+        <div className="rounded-xl-4 flex gap-4">
+          <div className="mx-4 flex grow flex-col gap-3">
+            <PostCard {...postData} redirectOnDelete={true} />
+          </div>
+        </div>
       </PageLayout>
     </>
   );

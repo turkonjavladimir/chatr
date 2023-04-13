@@ -18,11 +18,13 @@ const Profile: NextPage<{ slug: string }> = ({ slug }) => {
   return (
     <>
       <PageLayout>
-        <div>
-          <h1>Profile</h1>
-          {posts.map((postData) => (
-            <PostCard key={postData.id} {...postData} />
-          ))}
+        <div className="rounded-xl-4 flex gap-4">
+          <div className="mx-4 flex grow flex-col gap-3">
+            <h1>Profile Page</h1>
+            {posts.map((postData) => (
+              <PostCard key={postData.id} {...postData} />
+            ))}
+          </div>
         </div>
       </PageLayout>
     </>
