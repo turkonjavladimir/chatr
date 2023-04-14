@@ -166,8 +166,8 @@ const Navbar = () => {
 const Header = () => {
   const { data: sessionData } = useSession();
   return (
-    <header className="m-auto max-w-6xl">
-      <div className="flex h-16 w-full items-center justify-between gap-3 px-4 py-3">
+    <header className="sticky top-0 z-10 mb-4 bg-white/80 backdrop-blur-md">
+      <div className="m-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
         {/* Mobile layout */}
         <div className="flex w-full justify-between md:hidden">
           <div className="flex items-center">
