@@ -4,8 +4,6 @@ import type { Post, User, Like } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { SubmitHandler } from "react-hook-form";
 
-import { v4 as uuidv4 } from "uuid";
-
 import { api } from "~/utils/api";
 import useZodForm from "~/utils/hooks/useZodForm";
 
@@ -63,66 +61,14 @@ const PostForm = () => {
 
   const ctx = api.useContext();
   const { mutate, isLoading } = api.posts.create.useMutation({
-    onMutate: async (newPost) => {
-      // cancel all outgoing refetches (so they don't overwrite our optimistic update)
-      await ctx.posts.getAll.cancel();
-
-      // Snapshot the previous value
-      const previousPosts = ctx.posts.getAll.getData({
-        cursor: undefined,
-        limit: undefined,
-      });
-
-      // Optimistically update to the new value
-      ctx.posts.getAll.setData(
-        { cursor: undefined, limit: undefined },
-        (prev) => {
-          console.log("optimistic update", prev);
-          const optimisticPost = {
-            id: uuidv4(),
-            content: newPost.content,
-            authorId: sessionData?.user?.id ?? "",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            author: {
-              id: sessionData?.user?.id ?? "",
-              name: sessionData?.user?.name ?? "",
-              image: sessionData?.user?.image ?? "",
-              email: null,
-              emailVerified: null,
-            },
-            isLoading: true,
-            isLikedByUser: false,
-          } as OptimisticPost;
-
-          if (!prev) {
-            return {
-              posts: [optimisticPost],
-              nextCursor: "",
-            };
-          }
-
-          return { posts: [optimisticPost, ...prev?.posts], nextCursor: "" };
-        }
-      );
-
-      return { previousPosts };
-    },
-    onError: async (error, newPost, context) => {
-      await ctx.posts.getAll.invalidate();
-      if (context?.previousPosts) {
-        ctx.posts.getAll.setData(
-          { cursor: undefined, limit: undefined },
-          () => context?.previousPosts
-        );
-      }
-
-      toast.error("Failed to post");
-      reset();
-    },
     onSettled: async () => {
       await ctx.posts.getAll.invalidate();
-      toast.success("Posted!");
+      toast.success("Posted");
+      reset();
+    },
+    onError: async () => {
+      await ctx.posts.getAll.invalidate();
+      toast.error("Failed to post");
       reset();
     },
   });
