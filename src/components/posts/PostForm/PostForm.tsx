@@ -68,40 +68,53 @@ const PostForm = () => {
       await ctx.posts.getAll.cancel();
 
       // Snapshot the previous value
-      const previousPosts = ctx.posts.getAll.getData();
+      const previousPosts = ctx.posts.getAll.getData({
+        cursor: undefined,
+        limit: undefined,
+      });
 
       // Optimistically update to the new value
-      ctx.posts.getAll.setData(undefined, (prev) => {
-        const optimisticPost = {
-          id: uuidv4(),
-          content: newPost.content,
-          authorId: sessionData?.user?.id ?? "",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          author: {
-            id: sessionData?.user?.id ?? "",
-            name: sessionData?.user?.name ?? "",
-            image: sessionData?.user?.image ?? "",
-            email: null,
-            emailVerified: null,
-          },
-          isLoading: true,
-          isLikedByUser: false,
-        } as OptimisticPost;
+      ctx.posts.getAll.setData(
+        { cursor: undefined, limit: undefined },
+        (prev) => {
+          console.log("optimistic update", prev);
+          const optimisticPost = {
+            id: uuidv4(),
+            content: newPost.content,
+            authorId: sessionData?.user?.id ?? "",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            author: {
+              id: sessionData?.user?.id ?? "",
+              name: sessionData?.user?.name ?? "",
+              image: sessionData?.user?.image ?? "",
+              email: null,
+              emailVerified: null,
+            },
+            isLoading: true,
+            isLikedByUser: false,
+          } as OptimisticPost;
 
-        if (!prev) {
-          return [optimisticPost];
+          if (!prev) {
+            return {
+              posts: [optimisticPost],
+              nextCursor: "",
+            };
+          }
+
+          return { posts: [optimisticPost, ...prev?.posts], nextCursor: "" };
         }
-
-        return [optimisticPost, ...prev];
-      });
+      );
 
       return { previousPosts };
     },
     onError: async (error, newPost, context) => {
       await ctx.posts.getAll.invalidate();
       if (context?.previousPosts) {
-        ctx.posts.getAll.setData(undefined, () => context?.previousPosts);
+        ctx.posts.getAll.setData(
+          { cursor: undefined, limit: undefined },
+          () => context?.previousPosts
+        );
       }
 
       toast.error("Failed to post");
