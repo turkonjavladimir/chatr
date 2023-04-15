@@ -11,7 +11,7 @@ import AuthorInfo from "./AuthorInfo";
 import PostActions from "./PostActions";
 import SocialStats from "./SocialStats";
 
-type PostWithUser = RouterOutputs["posts"]["getAll"][number] & {
+type PostWithUser = RouterOutputs["posts"]["getAll"]["posts"][number] & {
   isLoading?: boolean;
   redirectOnDelete?: boolean;
 };

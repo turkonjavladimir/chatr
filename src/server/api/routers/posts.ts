@@ -20,22 +20,38 @@ export function addIsLikedByUserToPost(
 }
 
 export const postsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.prisma.post.findMany({
-      include: {
-        author: true,
-        likes: true,
-      },
-      take: 10,
-      orderBy: { createdAt: "desc" },
-    });
+  getAll: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().optional().default(10),
+        cursor: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const posts = await ctx.prisma.post.findMany({
+        include: {
+          author: true,
+          likes: true,
+        },
+        take: input?.limit + 1,
+        skip: input?.cursor ? 1 : undefined,
+        cursor: input?.cursor ? { id: input.cursor } : undefined,
+        orderBy: { createdAt: "desc" },
+      });
 
-    const postsWithAUthorAndLikes = posts.map((post) =>
-      addIsLikedByUserToPost(post, ctx?.session?.user?.id)
-    );
+      const postsWithAuthorAndLikes = posts.map((post) =>
+        addIsLikedByUserToPost(post, ctx?.session?.user?.id)
+      );
 
-    return postsWithAUthorAndLikes;
-  }),
+      let nextCursor: typeof input.cursor | string = undefined;
+
+      if (posts.length > input.limit) {
+        const nextItem = posts.pop() as (typeof posts)[number];
+        nextCursor = nextItem?.id;
+      }
+
+      return { posts: postsWithAuthorAndLikes, nextCursor };
+    }),
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -110,10 +126,10 @@ export const postsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Posts not found" });
       }
 
-      const postsWithAUthorAndLikes = posts.map((post) =>
+      const postsWithAuthorAndLikes = posts.map((post) =>
         addIsLikedByUserToPost(post, ctx?.session?.user?.id)
       );
 
-      return postsWithAUthorAndLikes;
+      return postsWithAuthorAndLikes;
     }),
 });

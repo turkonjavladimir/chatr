@@ -13,7 +13,7 @@ import {
 import type { RouterOutputs } from "~/utils/api";
 import { usePost } from "../../hooks/usePost";
 
-type Author = RouterOutputs["posts"]["getAll"][number]["author"];
+type Author = RouterOutputs["posts"]["getAll"]["posts"][number]["author"];
 const AuthorInfo = ({
   author,
   children,
