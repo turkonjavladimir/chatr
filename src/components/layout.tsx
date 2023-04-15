@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from "react";
 
 import Header from "./layout/Header";
-import { ProfileWidget } from "./profile";
-
+/* import { ProfileWidget } from "./profile";
+ */
 const PageLayout = ({ children }: PropsWithChildren) => {
   return (
     <>
@@ -27,7 +27,7 @@ const PageLayout = ({ children }: PropsWithChildren) => {
             {/* Left column */}
             <aside className="hidden grid-cols-1 lg:col-span-3 lg:grid">
               <section aria-labelledby="section-2-title">
-                <ProfileWidget />
+                {/*                 <ProfileWidget /> */}
               </section>
             </aside>
 
